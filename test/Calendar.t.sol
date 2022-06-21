@@ -53,10 +53,9 @@ contract ContractTest is DSTest {
         uint256 timezone     = 0;
         uint256 startingHour = 9 hours;
         uint256 duration     = 8 hours;
-        bool    nightShift   = false;
 
         // _time(1655103600);
-        assertTrue(cal.isWorking(1753302600, weekdays, timezone, startingHour, duration, nightShift));
+        assertTrue(cal.isWorking(1753302600, weekdays, timezone, startingHour, duration));
 
         //  _time(1655114400);
         // assertTrue(cal.isWorking(weekdays, timezone, startingHour, duration, nightShift));

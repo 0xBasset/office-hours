@@ -3,7 +3,7 @@ pragma solidity 0.8.7;
 
 /// @notice Modern, minimalist, and gas efficient ERC-721 implementation.
 /// @author 0xBasset | Taken from Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/tokens/ERC721.sol)
-contract ERC721 {
+contract OfficeHours {
 
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
@@ -32,6 +32,9 @@ contract ERC721 {
     address public calendar;
     address public renderer;
 
+    uint256 public maxSupply = 3000;
+    uint256 public totalSupply;
+
     mapping(uint256 => Data)    internal _tokenData;
     mapping(address => uint256) internal _balanceOf;
 
@@ -39,23 +42,63 @@ contract ERC721 {
 
     mapping(address => mapping(address => bool)) public isApprovedForAll;
 
-    struct Data { address owner; bytes12 details; } // 1 byte Timezone 2 byte workingHours(start - duration), 1 byte weekdays (bitmask from bits 0-7), calendar day (override all settings)
+    struct Data { address owner; Details details; }
 
-    struct Calendar {
-        uint8 profession; // The profession gives work structure
-        uint8 timezone;
-        uint8 nightShift;
-        // Overtime
-
-        // uint8 startingHour; // 0 - 24
-        // uint8 duration;     // 0-24
-        // uint8 weekdays;     // 0 - 128 (Bit mask starting monday -> sunday)
-        // uint8 timezone;     // the timezone id
-        // uint8 nightShift;   // weather or not it's a night shift
-        // uint8 calendarDay;  // Id of the calendar day
+    struct Details {
+        uint8 profession;     // The profession gives work structure
+        uint8 timezone;       // The timezone where the worker is
+        uint40 overtimeUntil; // The timestamp up until this token is on overtime
+        uint40 ratePerSecond; // How much it costs to pay for overtime
     }
 
+    /*//////////////////////////////////////////////////////////////
+                              CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
 
+    constructor() { owner = msg.sender; }
+
+    /*//////////////////////////////////////////////////////////////
+                              OFFICE HOURS LOGIC
+    //////////////////////////////////////////////////////////////*/
+
+    function mint() external {
+        // Generate token
+        uint256 id = totalSupply++;
+
+        // Not the strongest entropy, but good enough for a mint
+        uint256 entropy = uint256(keccak256(abi.encode(msg.sender, block.coinbase, id)));
+
+        // Generate traits
+        
+
+        _mint(msg.sender, id);
+    } 
+
+    function payOvertime(uint256 tokenId_) external payable { 
+        uint256 overtime = msg.value /_tokenData[tokenId_].details.ratePerSecond;
+        // todo think if an overflow is even feasible
+        _tokenData[tokenId_].details.overtimeUntil += uint40(overtime);
+    } 
+
+    /*//////////////////////////////////////////////////////////////
+                              ADMIN FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function setRenderer(address rend_) external {
+        require(msg.sender == owner, "not owner");
+        renderer = rend_;
+    }
+
+    function setCalendar(address cal_) external {
+        require(msg.sender == owner, "not owner");
+        calendar = cal_;
+    }
+
+    function withdraw(address recipient) external {
+        require(msg.sender == owner, "not owner");
+        (bool succ, ) = payable(recipient).call{value: address(this).balance }("");
+        require(succ, "withdraw failed");
+    }
 
     /*//////////////////////////////////////////////////////////////
                               ERC721 LOGIC
@@ -91,7 +134,8 @@ contract ERC721 {
             "NOT_AUTHORIZED"
         );
 
-        require(CalendarLike(calendar).canTransfer(_tokenData[id].details), "NOT_ON_DUTY");
+        Details memory details = _tokenData[id].details;
+        require(CalendarLike(calendar).canTransfer(details.profession, details.timezone, details.overtimeUntil), "NOT_ON_DUTY");
 
         // Underflow of the sender's balance is impossible because we check for
         // ownership above and the recipient's balance can't realistically overflow.
@@ -144,6 +188,9 @@ contract ERC721 {
     //////////////////////////////////////////////////////////////*/
 
     function ownerOf(uint256 id) public view virtual returns (address owner_) {
+        Details memory details = _tokenData[id].details;
+        require(CalendarLike(calendar).canTransfer(details.profession, details.timezone, details.overtimeUntil), "NOT_ON_DUTY");
+
         require((owner_ = _tokenData[id].owner) != address(0), "NOT_MINTED");
     }
 
@@ -185,20 +232,20 @@ contract ERC721 {
     }
 
     function _burn(uint256 id) internal virtual {
-        address owner = _tokenData[id].owner;
+        address owner_ = _tokenData[id].owner;
 
-        require(owner != address(0), "NOT_MINTED");
+        require(owner_ != address(0), "NOT_MINTED");
 
         // Ownership check above ensures no underflow.
         unchecked {
-            _balanceOf[owner]--;
+            _balanceOf[owner_]--;
         }
 
         delete _tokenData[id];
 
         delete getApproved[id];
 
-        emit Transfer(owner, address(0), id);
+        emit Transfer(owner_, address(0), id);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -246,5 +293,5 @@ abstract contract ERC721TokenReceiver {
 }
 
 interface CalendarLike {
-    function canTransfer(bytes12 details) external view returns (bool can);
+    function canTransfer(uint256 profession, uint256 timezone, uint256 overtimeUntil) external view returns (bool can);
 }
