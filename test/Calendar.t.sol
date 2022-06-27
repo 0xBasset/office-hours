@@ -3,8 +3,10 @@ pragma solidity 0.8.7;
 
 import "./utils/test.sol";
 import "./utils/Interfaces.sol";
+import { console } from "./utils/log.sol";
 
 import "../contracts/Calendar.sol";
+
 
 contract ContractTest is DSTest {
         

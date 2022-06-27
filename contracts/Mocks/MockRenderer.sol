@@ -37,13 +37,14 @@ contract OfficeHoursRenderer {
                 );
     }
 
-    function _getAttributes(uint256 profession, uint256 timezone, uint256 hourlyRate) internal pure returns (string memory atts_) {
+    function _getAttributes(uint256 profession, uint256 timezone, uint256 ratePerSecond) internal pure returns (string memory atts_) {
         atts_ = string(abi.encodePacked(
             '{"trait_type":"Profession","value":"', _getName(profession),'"},',
             '{"trait_type":"Timezone","value":"',_getTimezone(timezone),'"},',
             '{"trait_type":"City","value":"',_getCity(timezone),'"},'
             '{"trait_type":"Schedule","value":"',_schedule(profession),'"},',
-            '{"display_type": "boost_number","trait_type": "Hourly Rate (ETH)", "value":', _getRate(hourlyRate),'}'
+            '{"display_type": "boost_number","trait_type": "Hourly Rate (ETH)", "value":', 
+            Strings.toString(ratePerSecond * 3600),'}'
         ));
     }
 
@@ -58,14 +59,6 @@ contract OfficeHoursRenderer {
         if (id ==  8) name_ = "Actress";
         if (id ==  9) name_ = "Doctor";
         if (id == 10) name_ = "Chef";
-    }
-
-    function _getRate(uint256 hourlyRate) internal pure returns(string memory rate) {
-        string memory r = Strings.toString(hourlyRate);
-        if (hourlyRate < 10) {
-            r = string(abi.encodePacked("0", r));
-        }
-        rate = string(abi.encodePacked("0.0", r));
     }
 
     function _getCity(uint256 id) internal pure returns(string memory loc) {
@@ -137,9 +130,7 @@ contract OfficeHoursRenderer {
     }
 
     function _getSvg(uint256 id, uint256 profession, uint256 timezone) internal view returns (string memory svg) {
-        string memory prof = InventoryLike(professions).professions(profession);
-        string memory loc  = InventoryLike(locations).locations(timezone);
-        svg = Strings.encode(abi.encodePacked(header, getBg(id), wrapTag(frame), wrapTag(prof), wrapTag(loc) ,footer));
+        svg = Strings.encode(abi.encodePacked(header, getBg(id), wrapTag(frame),footer));
     }
 
     function getBg(uint256 id) internal pure returns (string memory bg) {

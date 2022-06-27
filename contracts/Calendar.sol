@@ -2,18 +2,10 @@
 pragma solidity 0.8.7;
 
 contract Calendar {
-    // Weekdays in bitwise from rigth to left
-    // Monday  = 00000001 -> 1
-    // Tuesday = 00000010 -> 2
-    // ...
-    // Sunday = 01000000 -> 64
-    // Mondays, Weds and Fridays = 00010101 -> 21
-
-    event log_named_uint(string key, uint256 val);
-    event log_named_string(string key, string val);
 
     uint256 constant base = 1654513200;   // 00:00 from a monday on UTC-11 (the lowest timezone)
-    uint256 constant minimumWage = 25e10; // Minimum rate per second
+    uint256 constant secondsInYear = 31556926;
+    uint256 constant baseSalary = 1000000000000000; // Minimum rate per hour
 
     function _offsetForTimezone(uint256 timezone) public pure returns (uint256) {
         return (timezone * 3600);
@@ -23,12 +15,12 @@ contract Calendar {
       ( uint256 weekdays, uint256 start, uint256 duration, uint256 calendar) = getCalendar(profession);
 
       if (block.timestamp >= overtimeUntil) return true; 
+      if (isCalendarDay(block.timestamp, calendar)) return true;
 
       return isWorking(block.timestamp, weekdays, timezone, start, duration);
     }
 
     function isWorking(uint256 time, uint256 weekdays, uint256 timezone, uint256 startingHour, uint256 duration) public pure returns (bool working) {
-        // todo check calendar day
         uint256 timezoneBase = base + _offsetForTimezone(timezone);
 
         if (!_worksOn(weekdays, _dayOfTheWeek(time, timezoneBase))) return working;
@@ -44,6 +36,12 @@ contract Calendar {
 
     function _dayOfTheWeek(uint256 time_, uint256 base_) public pure returns (uint256 day) {
         day = ((time_ - (base_)) / 1 days) % 7; // 0 for monday, 1 for tue, etc
+    }
+
+    function isCalendarDay(uint256 time, uint256 secondsFromBase) public pure returns (bool isDay) {
+        uint256 secondsOffset = (time - base) % secondsInYear;
+
+        return secondsOffset >= secondsFromBase && secondsOffset <= secondsFromBase + 47 hours;
     }
 
     function calendarOffset(uint256 professionId) public pure returns (uint256 off_) {
@@ -76,6 +74,34 @@ contract Calendar {
         if (profId == 9) ( weekdays, start, duration, calendar) = (15, 9 hours, 12 hours, 0);
         // Chef
         if (profId == 10) ( weekdays, start, duration, calendar) = (126, 17 hours, 5 hours, 0);
+    }
+
+    function rates(uint256 profId) external pure returns(uint8 start, uint8 end) {
+        // Farmer
+        if (profId == 1) (start, end) = (1,3);
+        // NFT Influencer
+        if (profId == 2) (start, end) = (6,10);
+        // VC Chad
+        if (profId == 3) (start, end) = (9, 15);
+        // Floorboi
+        if (profId == 4) (start, end) = (1, 2);
+        // Moonboi
+        if (profId == 5) (start, end) = (1, 2);
+        // Bartender
+        if (profId == 6) (start, end) = (1, 5);
+        // Rugpuller
+        if (profId == 7) (start, end) = (3, 9);
+        // Actress
+        if (profId == 8) (start, end) = (2, 20);
+        // Doctor
+        if (profId == 9) (start, end) = (3, 12);
+        // Chef
+        if (profId == 10) (start, end) = (2, 10);
+        if (profId == 11) (start, end) = (2, 10);
+        if (profId == 12) (start, end) = (2, 10);
+        if (profId == 13) (start, end) = (2, 10);
+        if (profId == 14) (start, end) = (2, 10);
+        if (profId == 15) (start, end) = (2, 10);
     }
 
 }

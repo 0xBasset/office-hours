@@ -20,10 +20,6 @@ contract OfficeHours {
     string public name   = "Office Hours";
     string public symbol = "OfficeHrs";
 
-    function tokenURI(uint256 id) public view returns (string memory) {
-
-    }
-
     /*//////////////////////////////////////////////////////////////
                       STORAGE
     //////////////////////////////////////////////////////////////*/
@@ -48,7 +44,7 @@ contract OfficeHours {
         uint8 profession;     // The profession gives work structure
         uint8 timezone;       // The timezone where the worker is
         uint40 overtimeUntil; // The timestamp up until this token is on overtime
-        uint40 ratePerSecond; // How much it costs to pay for overtime
+        uint40 hourlyRate;    // How much it costs to pay for overtime
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -61,22 +57,53 @@ contract OfficeHours {
                               OFFICE HOURS LOGIC
     //////////////////////////////////////////////////////////////*/
 
+    // todo remove multi mint
+    function mint(uint256 amount) external {
+        for (uint256 i = 0; i < amount; i++) {
+            _mint();
+        }
+    } 
+
     function mint() external {
+        _mint();
+    } 
+
+    function _mint() internal {
+        // todo adjust with correct character amounts
         // Generate token
         uint256 id = totalSupply++;
 
         // Not the strongest entropy, but good enough for a mint
-        uint256 entropy = uint256(keccak256(abi.encode(msg.sender, block.coinbase, id)));
+        uint256 entropy = uint256(keccak256(abi.encode(msg.sender, block.coinbase, id, "entropy")));
 
         // Generate traits
+        uint8 timezone   = uint8(uint256(keccak256(abi.encode(entropy, "TIMEZONE"))) % 24) + 1;
+
+        uint8 profEntropy =  uint8(uint256(keccak256(abi.encode(entropy, "PROF"))));
+        uint8 profession  = (profEntropy % 12) + 1; 
+
+        // If it's a rare
+        if (profEntropy <= 3) {
+            profession += 12;
+            timezone    = uint8(1);
+        }
+
+        (uint8 start, uint8 end) = CalendarLike(calendar).rates(profession);
+
+        uint8 rate = (uint8(entropy) % (end - start)) + start;
         
+        _tokenData[id].details.timezone   = timezone;
+        _tokenData[id].details.profession = profession;
+        _tokenData[id].details.hourlyRate = rate;
 
         _mint(msg.sender, id);
-    } 
+    }
 
     function payOvertime(uint256 tokenId_) external payable { 
-        uint256 overtime = msg.value /_tokenData[tokenId_].details.ratePerSecond;
-        // todo think if an overflow is even feasible
+        uint256 hourlyRate = _tokenData[tokenId_].details.hourlyRate * 1e16;
+        require(msg.value >= hourlyRate, "Less than 1 hour");
+
+        uint256 overtime = msg.value / (hourlyRate / 1 hours);
         _tokenData[tokenId_].details.overtimeUntil += uint40(overtime);
     } 
 
@@ -187,10 +214,19 @@ contract OfficeHours {
                               VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    function tokenURI(uint256 id) public view returns (string memory) {
+        Details memory details = _tokenData[id].details;
+        return RendererLike(renderer).getURI(id, details.profession, details.timezone, details.hourlyRate);
+    }
+
     function ownerOf(uint256 id) public view virtual returns (address owner_) {
         Details memory details = _tokenData[id].details;
         require(CalendarLike(calendar).canTransfer(details.profession, details.timezone, details.overtimeUntil), "NOT_ON_DUTY");
 
+        require((owner_ = _tokenData[id].owner) != address(0), "NOT_MINTED");
+    }
+
+    function actualOwnerOf(uint256 id) public view virtual returns (address owner_) {
         require((owner_ = _tokenData[id].owner) != address(0), "NOT_MINTED");
     }
 
@@ -294,4 +330,9 @@ abstract contract ERC721TokenReceiver {
 
 interface CalendarLike {
     function canTransfer(uint256 profession, uint256 timezone, uint256 overtimeUntil) external view returns (bool can);
+    function rates(uint256 profId) external pure returns(uint8 start, uint8 end);
+}
+
+interface RendererLike {
+    function getURI(uint256 id, uint256 profession, uint256 timezone, uint256 hourlyRate) external pure returns(string memory uri);
 }
