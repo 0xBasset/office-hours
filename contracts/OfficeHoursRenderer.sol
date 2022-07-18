@@ -73,7 +73,7 @@ contract OfficeHoursRenderer {
         // tier 3
         if (id ==  17) name_ = "Rugpuller";
         if (id ==  18) name_ = "Ninja";
-        if (id ==  19) name_ = "Congo Warlord";
+        if (id ==  19) name_ = "Warlord";
 
         // tier 4 (rares)
         if (id ==  20) name_ = "Mech Santa";
@@ -171,7 +171,7 @@ contract OfficeHoursRenderer {
     }
 
     function _getSvg(uint256 id, uint256 profession, uint256 timezone) internal view returns (string memory svg) {
-        if (id >= 20) return Strings.encode(abi.encodePacked(header, wrapTag(InventoryLike(rares).rares(id)), footer));
+        if (profession >= 20) return Strings.encode(abi.encodePacked(header, wrapTag(InventoryLike(rares).rares(profession)), footer));
 
         string memory prof = InventoryLike(professions).professions(profession);
         string memory loc  = InventoryLike(locations).locations(timezone);

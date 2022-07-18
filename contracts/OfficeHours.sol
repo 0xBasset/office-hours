@@ -164,6 +164,20 @@ contract OfficeHours {
         emit ApprovalForAll(msg.sender, operator, approved);
     }
 
+    function transfer(address to, uint256 amount) public virtual returns (bool) {
+        _balanceOf[msg.sender].balance -= uint128(amount);
+
+        // Cannot overflow because the sum of all user
+        // balances can't exceed the max uint256 value.
+        unchecked {
+            _balanceOf[to].balance += uint128(amount);
+        }
+
+        emit Transfer(msg.sender, to, amount);
+
+        return true;
+    }
+
     function transferFrom(
         address from,
         address to,
@@ -268,6 +282,11 @@ contract OfficeHours {
         overtime_    = details.overtimeUntil;
     }
 
+    function canTransfer(uint256 id_) public view returns (bool) {
+        Details memory details = _tokenData[id_].details;
+        return CalendarLike(calendar).canTransfer(details.profession, details.timezone, details.overtimeUntil);
+    }
+
     /*//////////////////////////////////////////////////////////////
                               ERC165 LOGIC
     //////////////////////////////////////////////////////////////*/
@@ -361,7 +380,7 @@ abstract contract ERC721TokenReceiver {
 }
 
 interface CalendarLike {
-    function canTransfer(uint256 profession, uint256 timezone, uint256 overtimeUntil) external view returns (bool can);
+    function canTransfer(uint256 profession, uint256 timezone, uint256 overtimeUntil) external view returns(bool);
     function rates(uint256 profId) external pure returns(uint8 start, uint8 end);
 }
 

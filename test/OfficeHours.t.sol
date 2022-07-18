@@ -32,24 +32,37 @@ contract ContractTest is DSTest {
         renderer.setInventory(address(prof), address(loc), address(rares));
         office.setRenderer(address(renderer));
         office.setCalendar(address(calendar));
+
+        vm.warp(1654516801);
     }
 
     mapping (uint256 => uint256) public occur;
 
-    function test_mint() external {
+    function test_mint_distribution() external {
         office.mint(10000);
 
-        for (uint256 i = 1; i < 10001; i++) {
-            (uint256 prof_,,,) = office.getDatails(i);
-            occur[prof_]++;
+        // for (uint256 i = 1; i < 10001; i++) {
+        //     (uint256 prof_,,,) = office.getDatails(i);
+        //     occur[prof_]++;
+        // }
+
+        // for (uint256 j = 1; j < 24; j++) {
+        //     emit log_named_uint("occ", occur[j]);
+        //     if (j == 11) emit log("----------------");
+        //     if (j == 16) emit log("----------------");
+        //     if (j == 19) emit log("----------------");
+        // }
+    }
+
+    function test_mint_cap() external {
+        for (uint256 i = 1; i < 1001; i++) {
+            vm.prank(address(uint160(i)));
+            office.mint(1,1);
         }
 
-        for (uint256 j = 1; j < 24; j++) {
-            emit log_named_uint("occ", occur[j]);
-            if (j == 11) emit log("----------------");
-            if (j == 16) emit log("----------------");
-            if (j == 19) emit log("----------------");
-        }
+        vm.expectRevert("max supply reached");
+        vm.prank(address(4000));
+        office.mint(1,1);
     }
 
     function test_getMetadata() external {
@@ -61,18 +74,132 @@ contract ContractTest is DSTest {
         // emit log(office.tokenURI(1));
     }
 
-    // function test_address() external {
-    //     // emit log_named_address("full add", address(this));
 
-    //     // emit log_named_uint("uint8", uint8(uint160(address(this))));
-    // }
+    function test_approve_alawaysWorks() external {
+        address sender     = address(99999);
+        address transferer = address(8888);
 
-    // function test_transfer() external {
-    //     office.mint(3);
-    //     office.approve(address(1), 1);
+        // Mint a single 3 tokens
+        vm.prank(sender);
+        office.mint(1, 1);
 
-    //     vm.prank(address(1));
-    //     office.transferFrom(address(this), address(2), 1);
-    // }
+        uint256 id = 1;
+
+        bool can = true;
+
+        for (uint256 i = 0; i < 1000; i++) {
+            vm.warp(block.timestamp + 3600);
+            can = office.canTransfer(1);
+
+            if (!can) {
+                // Not able to read owner 
+                vm.expectRevert("NOT_ON_DUTY");
+                office.ownerOf(id);
+
+                // Approve the token
+                office.approve(transferer, id);
+                break;
+            }
+        }
+    }
+
+    function test_transfer_alawaysWorks() external {
+        address sender = address(99999);
+
+        // Mint a single 3 tokens
+        vm.prank(sender);
+        office.mint(1, 1);
+
+        uint256 id = 1;
+
+        bool can = true;
+
+        for (uint256 i = 0; i < 1000; i++) {
+            vm.warp(block.timestamp + 3600);
+            can = office.canTransfer(1);
+
+            if (!can) {
+                // Not able to read owner 
+                vm.expectRevert("NOT_ON_DUTY");
+                office.ownerOf(id);
+
+                // Approve the token
+                vm.prank(sender);
+                office.transfer(address(10), id);
+                break;
+            }
+        }
+    }
+
+    function test_transferLock() external {
+        address sender = address(99999);
+
+        // Mint a single 3 tokens
+        vm.prank(sender);
+        office.mint(1, 1);
+
+        uint256 id = 1;
+
+        bool can = true;
+
+        for (uint256 i = 0; i < 1000; i++) {
+            vm.warp(block.timestamp + 3600);
+            can = office.canTransfer(1);
+
+            if (!can) {
+                // Not able to read owner 
+                vm.expectRevert("NOT_ON_DUTY");
+                office.ownerOf(id);
+
+                // Approve the token
+                vm.prank(sender);
+                office.approve(address(10), id);
+
+                vm.expectRevert("NOT_ON_DUTY");
+                vm.prank(address(10));
+                office.transferFrom(sender, address(10), id);
+                break;
+            }
+        }
+    }
+
+    function test_payOvertime() external {
+        address sender = address(99999);
+
+        // Mint a single 3 tokens
+        vm.prank(sender);
+        office.mint(1, 1);
+
+        uint256 id = 1;
+
+        bool can = true;
+
+        for (uint256 i = 0; i < 1000; i++) {
+            vm.warp(block.timestamp + 3600);
+            can = office.canTransfer(1);
+
+            if (!can) {
+                // Not able to read owner 
+                vm.expectRevert("NOT_ON_DUTY");
+                office.ownerOf(id);
+
+                // Approve the token
+                vm.prank(sender);
+                office.approve(address(10), id);
+
+                vm.expectRevert("NOT_ON_DUTY");
+                vm.prank(address(10));
+                office.transferFrom(sender, address(10), id);
+
+                office.payOvertime{value: 0.1 ether}(id);
+
+                vm.prank(address(10));
+                office.transferFrom(sender, address(10), id);
+
+                assertEq(office.ownerOf(id), address(10));
+                break;
+            }
+        }
+    }
 
 }

@@ -13,7 +13,7 @@ contract Calendar {
         return (timezone * 3600);
     }
 
-    function canTransfer(uint256 profession, uint256 timezone, uint256 overtimeUntil) internal view returns(bool) {
+    function canTransfer(uint256 profession, uint256 timezone, uint256 overtimeUntil) external view returns(bool) {
       ( uint256 weekdays, uint256 start, uint256 duration, uint256 calendar) = getCalendar(profession);
 
       if (block.timestamp >= overtimeUntil)         return true; 

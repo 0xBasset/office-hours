@@ -14,24 +14,11 @@ async function main() {
 
   let nonce = 13;
 
-  // Deploy Inventories
-  let rares = await deploy("Rares", nonce);
-  nonce++;
-
-  let professions = await deploy("Professions", nonce);
-  nonce++;
-
-  let locations =  await deploy("Locations", nonce);
-  nonce++;
-
-  let renderer = await deploy("OfficeHoursRenderer", nonce);
-  nonce++;
-
-  await renderer.setInventory(professions.address, locations.address, rares.address, { nonce: nonce });
+  let renderer = await deploy("MockOfficeHoursRenderer", nonce);
   nonce++;
 
   // Deploy Calendar
-  let calendar = await deploy("Calendar", nonce);
+  let calendar = await deploy("MockCalendar", nonce);
   nonce++;
 
   let officeHours = await deploy("OfficeHours", nonce);

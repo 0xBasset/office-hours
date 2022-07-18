@@ -17,32 +17,8 @@ contract MockCalendar {
       return working[profession];
     }
 
-    function rates(uint256 profId) external pure returns(uint8 start, uint8 end) {
-        // Farmer
-        if (profId == 1) (start, end) = (1,3);
-        // NFT Influencer
-        if (profId == 2) (start, end) = (6,10);
-        // VC Chad
-        if (profId == 3) (start, end) = (9, 15);
-        // Floorboi
-        if (profId == 4) (start, end) = (1, 2);
-        // Moonboi
-        if (profId == 5) (start, end) = (1, 2);
-        // Bartender
-        if (profId == 6) (start, end) = (1, 5);
-        // Rugpuller
-        if (profId == 7) (start, end) = (3, 9);
-        // Actress
-        if (profId == 8) (start, end) = (2, 20);
-        // Doctor
-        if (profId == 9) (start, end) = (3, 12);
-        // Chef
-        if (profId == 10) (start, end) = (2, 10);
-        if (profId == 11) (start, end) = (2, 10);
-        if (profId == 12) (start, end) = (2, 10);
-        if (profId == 13) (start, end) = (2, 10);
-        if (profId == 14) (start, end) = (2, 10);
-        if (profId == 15) (start, end) = (2, 10);
+    function rates(uint256 ) external pure returns(uint8 start, uint8 end) {
+        return(1, 2);
     }
 
 }
