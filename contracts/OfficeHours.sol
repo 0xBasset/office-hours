@@ -5,6 +5,8 @@ pragma solidity 0.8.7;
 /// @author 0xBasset | Taken from Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/tokens/ERC721.sol)
 contract OfficeHours {
 
+    uint256 constant ONE_PERCENT  = type(uint256).max / 100;
+
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
@@ -31,14 +33,19 @@ contract OfficeHours {
     uint256 public maxSupply = 3000;
     uint256 public totalSupply;
 
-    mapping(uint256 => Data)    internal _tokenData;
-    mapping(address => uint256) internal _balanceOf;
+    mapping(uint256 => Data)        internal _tokenData;
+    mapping(address => AddressData) internal _balanceOf;
 
     mapping(uint256 => address) public getApproved;
 
     mapping(address => mapping(address => bool)) public isApprovedForAll;
 
     struct Data { address owner; Details details; }
+
+    struct AddressData {
+        uint128 balance;
+        uint128 minted;
+    }
 
     struct Details {
         uint8 profession;     // The profession gives work structure
@@ -64,12 +71,18 @@ contract OfficeHours {
         }
     } 
 
-    function mint() external {
+    function mint(uint256 amount, uint256 salt) external {
+        // TODO
+        require(totalSupply <= maxSupply - 3, "max supply reached");
+        require(_balanceOf[msg.sender].minted == 0, "Already minted");
+
+        // Default mints 3
+        _mint();
+        _mint();
         _mint();
     } 
 
     function _mint() internal {
-        // todo adjust with correct character amounts
         // Generate token
         uint256 id = totalSupply++;
 
@@ -77,24 +90,28 @@ contract OfficeHours {
         uint256 entropy = uint256(keccak256(abi.encode(msg.sender, block.coinbase, id, "entropy")));
 
         // Generate traits
-        uint8 timezone   = uint8(uint256(keccak256(abi.encode(entropy, "TIMEZONE"))) % 24) + 1;
+        uint8 timezone = uint8(uint256(keccak256(abi.encode(entropy, "TIMEZONE"))) % 25) + 1;
 
-        uint8 profEntropy =  uint8(uint256(keccak256(abi.encode(entropy, "PROF"))));
-        uint8 profession  = (profEntropy % 12) + 1; 
+        uint256 profEntropy =  uint256(uint256(keccak256(abi.encode(entropy, "PROF"))));
 
-        // If it's a rare
-        if (profEntropy <= 3) {
-            profession += 12;
-            timezone    = uint8(1);
-        }
+        uint8 profession = uint8(
+            // If entropy smaller than 50%
+            profEntropy <= 70 * ONE_PERCENT ? (profEntropy % 11) + 1 : 
+            // If entropy between 50% and 85%
+            profEntropy <= 95 * ONE_PERCENT ? (profEntropy % 5) + 12 :
+            // If entropy between 85% and 98%
+            profEntropy <= 99 * ONE_PERCENT ? (profEntropy % 3) + 17 :
+            // Else, select one of the rares
+            profEntropy % 3 + 20);
 
         (uint8 start, uint8 end) = CalendarLike(calendar).rates(profession);
 
         uint8 rate = (uint8(entropy) % (end - start)) + start;
         
-        _tokenData[id].details.timezone   = timezone;
-        _tokenData[id].details.profession = profession;
-        _tokenData[id].details.hourlyRate = rate;
+        _tokenData[id].details.timezone      = timezone;
+        _tokenData[id].details.profession    = profession;
+        _tokenData[id].details.hourlyRate    = rate;
+        _tokenData[id].details.overtimeUntil = uint40(block.timestamp + 4 hours);
 
         _mint(msg.sender, id);
     }
@@ -167,9 +184,9 @@ contract OfficeHours {
         // Underflow of the sender's balance is impossible because we check for
         // ownership above and the recipient's balance can't realistically overflow.
         unchecked {
-            _balanceOf[from]--;
+            _balanceOf[from].balance--;
 
-            _balanceOf[to]++;
+            _balanceOf[to].balance++;
         }
 
         _tokenData[id].owner = to;
@@ -233,9 +250,23 @@ contract OfficeHours {
     function balanceOf(address owner_) public view virtual returns (uint256) {
         require(owner_ != address(0), "ZERO_ADDRESS");
 
-        return _balanceOf[owner_];
+        return _balanceOf[owner_].balance;
     }
 
+    function minted(address owner_) public view virtual returns (uint256) {
+        require(owner_ != address(0), "ZERO_ADDRESS");
+
+        return _balanceOf[owner_].minted;
+    }
+
+    function getDatails(uint256 id_) public view returns (uint256 profession_, uint256 location_, uint256 rate_, uint256 overtime_) {
+        Details memory details = _tokenData[id_].details;
+
+        profession_ = details.profession;
+        location_   = details.timezone;
+        rate_       = details.hourlyRate;
+        overtime_    = details.overtimeUntil;
+    }
 
     /*//////////////////////////////////////////////////////////////
                               ERC165 LOGIC
@@ -259,7 +290,8 @@ contract OfficeHours {
 
         // Counter overflow is incredibly unrealistic.
         unchecked {
-            _balanceOf[to]++;
+            _balanceOf[to].balance++;
+            _balanceOf[to].minted++;
         }
 
         _tokenData[id].owner = to;
@@ -274,7 +306,7 @@ contract OfficeHours {
 
         // Ownership check above ensures no underflow.
         unchecked {
-            _balanceOf[owner_]--;
+            _balanceOf[owner_].balance--;
         }
 
         delete _tokenData[id];

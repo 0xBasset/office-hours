@@ -4,13 +4,15 @@ pragma solidity 0.8.7;
 contract OfficeHoursRenderer {
 
     address admin;
+    address rares;
     address professions;
     address locations;
 
     constructor() { admin = msg.sender; }
 
-    function setInventory(address professions_, address locations_) external {
+    function setInventory(address professions_, address locations_, address rares_) external {
         require(msg.sender == admin, "not admin");
+        rares       = rares_;
         professions = professions_;
         locations   = locations_;
     }
@@ -48,16 +50,36 @@ contract OfficeHoursRenderer {
     }
 
     function _getName(uint256 id) internal pure returns (string memory name_) {
-        if (id ==  1) name_ = "Farmer";
-        if (id ==  2) name_ = "NFT Influencer";
-        if (id ==  3) name_ = "VC Chad";
-        if (id ==  4) name_ = "Floorboi";
-        if (id ==  5) name_ = "Moonboi";
-        if (id ==  6) name_ = "Bartender";
-        if (id ==  7) name_ = "Rugpuller";
-        if (id ==  8) name_ = "Actress";
-        if (id ==  9) name_ = "Doctor";
-        if (id == 10) name_ = "Chef";
+        // tier 1
+        if (id == 1)  name_ = "Farmer";
+        if (id == 2)  name_ = "NFT Influencer";
+        if (id == 3)  name_ = "VC Chad";
+        if (id == 4)  name_ = "Floorboi";
+        if (id == 5)  name_ = "Moonboi";
+        if (id == 6)  name_ = "Bartender";
+        if (id == 7)  name_ = "Chef";
+        if (id == 8)  name_ = "Accountant";
+        if (id == 9)  name_ = "Construction Worker";
+        if (id == 10) name_ = "Pharmacist";
+        if (id == 11) name_ = "Lawyer";
+
+        // tier 2 
+        if (id ==  12) name_ = "Athlete";
+        if (id ==  13) name_ = "Actress";
+        if (id ==  14) name_ = "Fashion Designer";
+        if (id ==  15) name_ = "Doctor";
+        if (id ==  16) name_ = "Judge";
+
+        // tier 3
+        if (id ==  17) name_ = "Rugpuller";
+        if (id ==  18) name_ = "Ninja";
+        if (id ==  19) name_ = "Congo Warlord";
+
+        // tier 4 (rares)
+        if (id ==  20) name_ = "Mech Santa";
+        if (id ==  21) name_ = "Hedgehog";
+        if (id ==  22) name_ = "Uncle Sam";
+        if (id ==  23) name_ = "Jack-o-Lantern";
     }
 
     function _getRate(uint256 hourlyRate) internal pure returns(string memory rate) {
@@ -69,55 +91,67 @@ contract OfficeHoursRenderer {
     }
 
     function _getCity(uint256 id) internal pure returns(string memory loc) {
-        // todo fill complete
-        if (id == 1)  loc = "Midway Atoll";
-        if (id == 2)  loc = "Honolulu";
-        if (id == 3)  loc = "Totegegie Island";
-        if (id == 4)  loc = "Anchorage";
-        if (id == 5)  loc = "Los Angeles";
-        if (id == 6)  loc = "Denver";
-        if (id == 7)  loc = "Mexico City";
-        if (id == 8)  loc = "New York City";
-        if (id == 9)  loc = "Rio de Janeiro";
-        if (id == 10) loc = "MISSING";
-        if (id == 11) loc = "Santiago Island";
-        if (id == 12) loc = "Reykjavik";
-        if (id == 13) loc = "Marrakesh";
-        if (id == 14) loc = "Cairo";
-        if (id == 15) loc = "Istambul";
-        if (id == 16) loc = "Dubai";
-        if (id == 17) loc = "New Delhi";
-        if (id == 18) loc = "Dhaka";
-        if (id == 19) loc = "MISSING";
-        if (id == 20) loc = "Beijin";
-        if (id == 21) loc = "Tokyo";
-        if (id == 22) loc = "Sydney";
-        if (id == 23) loc = "MISSING";
-        if (id == 24) loc = "Auckland";
+        if (id == 1)  loc = "GMT-12";
+        if (id == 2)  loc = "Midway Atoll"; 
+        if (id == 3)  loc = "Honolulu";
+        if (id == 4)  loc = "Totegegie Island";
+        if (id == 5)  loc = "Anchorage";
+        if (id == 6)  loc = "Los Angeles";
+        if (id == 7)  loc = "Denver";
+        if (id == 8)  loc = "Mexico City";
+        if (id == 9)  loc = "New York City";
+        if (id == 10) loc = "Rio de Janeiro";
+        if (id == 11) loc = "Fernando de Noronha";
+        if (id == 12) loc = "Santiago Island";
+        if (id == 13) loc = "Reykjavik";
+        if (id == 14) loc = "Marrakesh";
+        if (id == 15) loc = "Cairo";
+        if (id == 16) loc = "Istambul";
+        if (id == 17) loc = "Dubai";
+        if (id == 18) loc = "New Delhi";
+        if (id == 19) loc = "Dhaka";
+        if (id == 20) loc = "Bangkok";
+        if (id == 21) loc = "Beijin";
+        if (id == 22) loc = "Tokyo";
+        if (id == 23) loc = "Sydney";
+        if (id == 24) loc = "Honiara";
+        if (id == 25) loc = "Auckland";
     }
 
     function _getTimezone(uint256 id) public pure returns (string memory timezone) {
         string memory prefix = "GMT";
         string memory time;
 
-        if (id < 11)  time = string(abi.encodePacked("-", Strings.toString(12 - id)));
-        if (id >= 11) time = string(abi.encodePacked("+", Strings.toString(id - 11)));
+        if (id < 13)  time = string(abi.encodePacked("-", Strings.toString(13 - id)));
+        if (id >= 13) time = string(abi.encodePacked("+", Strings.toString(id - 13)));
 
         timezone = string(abi.encodePacked(prefix, time));
     }
 
     function _schedule(uint256 id) internal pure returns (string memory sche_) {
-        // Todo fill
         if (id ==  1) sche_ = "Monday to Friday 4am to 3pm";
         if (id ==  2) sche_ = "Monday to Sunday 3pm to 6pm";
-        if (id ==  3) sche_ = "Monday to Friday 10am to 6pm";
-        if (id ==  4) sche_ = "Monday to Friday 4am to 3pm";
-        if (id ==  5) sche_ = "Monday to Friday 4am to 3pm";
-        if (id ==  6) sche_ = "Monday to Friday 4am to 3pm";
-        if (id ==  7) sche_ = "Monday to Friday 4am to 3pm";
-        if (id ==  8) sche_ = "Monday to Friday 4am to 3pm";
-        if (id ==  9) sche_ = "Monday to Friday 4am to 3pm";
-        if (id == 10) sche_ = "Monday to Friday 4am to 3pm";
+        if (id ==  3) sche_ = "Monday to Friday 8am to 10pm";
+        if (id ==  4) sche_ = "Monday to Sunday 9am to 9pm";
+        if (id ==  5) sche_ = "Monday to Sunday 4pm to 6am";
+        if (id ==  6) sche_ = "Thursday to Sunday 6pm to 2am";
+        if (id ==  7) sche_ = "Thursday to Sunday 5pm to 12am";
+        if (id ==  8) sche_ = "Monday to Friday 9am to 5pm";
+        if (id ==  9) sche_ = "Monday to Friday 6am to 2pm";
+        if (id == 10) sche_ = "Monday to Saturday 10am to 7pm";
+        if (id == 11) sche_ = "Monday, Wednesdays, Thursdays & Friday 7am to 4pm";
+        if (id == 12) sche_ = "Wednesdays and Sundays 4pm to 10pm";
+        if (id == 13) sche_ = "Tuesdays, Thursdays, Saturday and Sunday 10am to 5pm";
+        if (id == 14) sche_ = "Mondays, Wednesdays, Fridays 9am to 11pm";
+        if (id == 15) sche_ = "Tuesdays, Thursdays, Saturdays 7am to 12am";
+        if (id == 16) sche_ = "Tuesdays to Fridays 11am to 4pm";
+        if (id == 17) sche_ = "Monday to Sunday 1am to 4am ";
+        if (id == 18) sche_ = "Wednesdays and Sundays from 12am to 6am";
+        if (id == 19) sche_ = "Monday to Sunday 6pm to 8pm";
+        if (id == 20) sche_ = "Christmas";
+        if (id == 21) sche_ = "Hedghog day";
+        if (id == 22) sche_ = "4th of July";
+        if (id == 23) sche_ = "Halloween";
     }
 
     function _bg(uint256 tokenId) internal pure returns (string memory bg_) {
@@ -137,6 +171,8 @@ contract OfficeHoursRenderer {
     }
 
     function _getSvg(uint256 id, uint256 profession, uint256 timezone) internal view returns (string memory svg) {
+        if (id >= 20) return Strings.encode(abi.encodePacked(header, wrapTag(InventoryLike(rares).rares(id)), footer));
+
         string memory prof = InventoryLike(professions).professions(profession);
         string memory loc  = InventoryLike(locations).locations(timezone);
         svg = Strings.encode(abi.encodePacked(header, getBg(id), wrapTag(frame), wrapTag(prof), wrapTag(loc) ,footer));
@@ -239,4 +275,5 @@ library Strings {
 interface InventoryLike {
     function professions(uint256 id) external pure returns (string memory str);
     function locations(uint256 id ) external pure returns (string memory str);
+    function rares(uint256 id) external pure returns (string memory str);
 }
