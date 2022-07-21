@@ -12,7 +12,7 @@ async function deploy(contractName, nonce) {
 async function main() {
   await hre.run("compile");
 
-  let nonce = 13;
+  let nonce = 45;
 
   // Deploy Inventories
   let rares = await deploy("Rares", nonce);

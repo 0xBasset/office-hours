@@ -71,7 +71,7 @@ contract ContractTest is DSTest {
         // for (uint256 i = 1; i < 300; i++) {
         //     office.tokenURI(i);
         // }
-        // emit log(office.tokenURI(1));
+        emit log(office.tokenURI(1));
     }
 
 

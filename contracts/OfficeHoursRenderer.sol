@@ -170,20 +170,47 @@ contract OfficeHoursRenderer {
         if (id == 12) bg_ = "857e89";
     }
 
+    function _textColor(uint256 tokenId) internal pure returns (string memory r, string memory g, string memory b) {
+        uint256 id = (tokenId % 12) + 1;
+        if (id ==  1) (r,g,b) = ("0.0","0.0","0.0");
+        if (id ==  2) (r,g,b) = ("0.0","0.0","0.0");
+        if (id ==  3) (r,g,b) = ("0.0","0.0","0.0");
+        if (id ==  4) (r,g,b) = ("0.0","0.0","0.0");
+        if (id ==  5) (r,g,b) = ("0.0","0.0","0.0");
+        if (id ==  6) (r,g,b) = ("0.0","0.0","0.0");
+        if (id ==  7) (r,g,b) = ("0.0","0.0","0.0");
+        if (id ==  8) (r,g,b) = ("0.0","0.0","0.0");
+        if (id ==  9) (r,g,b) = ("0.0","0.0","0.0");
+        if (id == 10) (r,g,b) = ("0.0","0.0","0.0");
+        if (id == 11) (r,g,b) = ("0.0","0.0","0.0");
+        if (id == 12) (r,g,b) = ("0.0","0.0","0.0");
+    }
+
     function _getSvg(uint256 id, uint256 profession, uint256 timezone) internal view returns (string memory svg) {
         if (profession >= 20) return Strings.encode(abi.encodePacked(header, wrapTag(InventoryLike(rares).rares(profession)), footer));
 
         string memory prof = InventoryLike(professions).professions(profession);
         string memory loc  = InventoryLike(locations).locations(timezone);
-        svg = Strings.encode(abi.encodePacked(header, getBg(id), wrapTag(frame), wrapTag(prof), wrapTag(loc) ,footer));
+        
+        (string memory r, string memory g, string memory b) = _textColor(id);
+        string memory filter = getFilter(r,g,b);
+        svg = Strings.encode(abi.encodePacked(header, getBg(id), wrapTag(frame), wrapTag(prof), wrapTextTag(loc, filter) ,footer));
     }
 
     function getBg(uint256 id) internal pure returns (string memory bg) {
         bg = string(abi.encodePacked('<rect width="100%" height="100%" style="fill:#', _bg(id) ,'" />'));
     }
 
+    function wrapTextTag(string memory uri, string memory filter) internal pure returns (string memory) {
+        return string(abi.encodePacked(filter, '<image x="0" y="0" width="64" height="64" image-rendering="pixelated" preserveAspectRatio="xMidYMid" xlink:href="data:image/png;base64,', uri, '" filter="url(#iatacolor)"/>'));
+    }
+
     function wrapTag(string memory uri) internal pure returns (string memory) {
         return string(abi.encodePacked('<image x="0" y="0" width="64" height="64" image-rendering="pixelated" preserveAspectRatio="xMidYMid" xlink:href="data:image/png;base64,', uri, '"/>'));
+    }
+
+    function getFilter(string memory r, string memory g, string memory b) internal pure returns (string memory filter) {
+        return string(abi.encodePacked('<filter id="iatacolor"> <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 ', r, ' 0 0 0 0 ', g, ' 0 0 0 0 ', b, ' 0 0 0 1 0"/> </filter>'));
     }
 
     string constant header = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="office" width="100%" height="100%" version="1.1" viewBox="0 0 64 64">';
