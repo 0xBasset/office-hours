@@ -5,16 +5,18 @@ contract OfficeHoursRenderer {
 
     address admin;
     address rares;
-    address professions;
+    address professions1;
+    address professions2;
     address locations;
 
     constructor() { admin = msg.sender; }
 
-    function setInventory(address professions_, address locations_, address rares_) external {
+    function setInventory(address professions1_, address professions2_, address locations_, address rares_) external {
         require(msg.sender == admin, "not admin");
-        rares       = rares_;
-        professions = professions_;
-        locations   = locations_;
+        rares        = rares_;
+        professions1 = professions1_;
+        professions2 = professions2_;
+        locations    = locations_;
     }
 
     function getURI(uint256 id, uint256 profession, uint256 timezone, uint256 ratePerSecond) external view returns(string memory uri) {
@@ -183,33 +185,25 @@ contract OfficeHoursRenderer {
     }
 
     function _bg(uint256 tokenId) internal pure returns (string memory bg_) {
-        uint256 id = (tokenId % 10) + 2;
-        if (id ==  2) bg_ = "483d8b";
-        if (id ==  3) bg_ = "40e0d0";
-        if (id ==  4) bg_ = "ff69b4";
-        if (id ==  5) bg_ = "00bfff";
-        if (id ==  6) bg_ = "ff7f50";
-        if (id ==  7) bg_ = "9370db";
-        if (id ==  8) bg_ = "ff00ff";
-        if (id ==  9) bg_ = "f08080";
-        if (id == 10) bg_ = "5b6ee1";
-        if (id == 11) bg_ = "9400D3";
-    }
-
-    function _getSvgFAKE(uint256 id, uint256 profession, uint256 timezone) public view returns (string memory svg) {
-        if (profession >= 32) return string(abi.encodePacked(headerfake, wrapTag(InventoryLike(rares).rares(profession)), footer));
-
-        string memory prof = InventoryLike(professions).professions(profession);
-        string memory loc  = InventoryLike(locations).locations(timezone);
-        
-        string memory filter = getFilter();
-        svg = string(abi.encodePacked(headerfake, getBg(id), wrapTag(frame), wrapTag(prof), wrapTextTag(loc, filter) ,footer));
+        uint256 id = (tokenId % 10) + 1;
+        if (id ==  1) bg_ = "483d8b";
+        if (id ==  2) bg_ = "40e0d0";
+        if (id ==  3) bg_ = "ff69b4";
+        if (id ==  4) bg_ = "00bfff";
+        if (id ==  5) bg_ = "ff7f50";
+        if (id ==  6) bg_ = "9370db";
+        if (id ==  7) bg_ = "ff00ff";
+        if (id ==  8) bg_ = "f08080";
+        if (id ==  9) bg_ = "5b6ee1";
+        if (id == 10) bg_ = "9400D3";
     }
 
     function _getSvg(uint256 id, uint256 profession, uint256 timezone) internal view returns (string memory svg) {
         if (profession >= 32) return Strings.encode(abi.encodePacked(header, wrapTag(InventoryLike(rares).rares(profession)), footer));
 
-        string memory prof = InventoryLike(professions).professions(profession);
+        address profAddress = profession <= 15 ? professions1 : professions2;
+
+        string memory prof = InventoryLike(profAddress).professions(profession);
         string memory loc  = InventoryLike(locations).locations(timezone);
         
         string memory filter = getFilter();
@@ -231,8 +225,6 @@ contract OfficeHoursRenderer {
     function getFilter() internal pure returns (string memory filter) {
         return string(abi.encodePacked('<filter id="iatacolor"> <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0"/> </filter>'));
     }
-
-    string constant headerfake = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="office" width="200px" height="200px" version="1.1" viewBox="0 0 64 64">';
 
     string constant header = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="office" width="100%" height="100%" version="1.1" viewBox="0 0 64 64">';
     string constant footer = '<style>#office{shape-rendering: crispedges;image-rendering: -webkit-crisp-edges;image-rendering: -moz-crisp-edges;image-rendering: crisp-edges;image-rendering: pixelated;-ms-interpolation-mode: nearest-neighbor;}</style></svg>';

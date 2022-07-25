@@ -18,7 +18,10 @@ async function main() {
   let rares = await deploy("Rares", nonce);
   nonce++;
 
-  let professions = await deploy("Professions", nonce);
+  let professions1 = await deploy("Professions1", nonce);
+  nonce++;
+
+  let professions2 = await deploy("Professions2", nonce);
   nonce++;
 
   let locations =  await deploy("Locations", nonce);
@@ -27,7 +30,7 @@ async function main() {
   let renderer = await deploy("OfficeHoursRenderer", nonce);
   nonce++;
 
-  await renderer.setInventory(professions.address, locations.address, rares.address, { nonce: nonce });
+  await renderer.setInventory(professions1.address, professions2.address, locations.address, rares.address, { nonce: nonce });
   nonce++;
 
   // Deploy Calendar
@@ -44,7 +47,6 @@ async function main() {
   await officeHours.setCalendar(calendar.address, { nonce: nonce });
   nonce++;
 
-  await officeHours.mintSpecial(20, { nonce: nonce });
 }
 
 // We recommend this pattern to be able to use async/await everywhere

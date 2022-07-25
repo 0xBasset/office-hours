@@ -17,6 +17,7 @@ contract ContractTest is DSTest {
 
     function setUp() public {
         cal = new Calendar();
+        vm.warp(1658756479);
     }
 
     function test_dow_timezone() public {
@@ -53,6 +54,23 @@ contract ContractTest is DSTest {
 
         // Monday again
         assertEq(cal._dayOfTheWeek(1656936000, timezone), 0);
+    }
+
+    function test_canTransfer_christams() public {
+        
+        for (uint256 i = 0; i < 155; i++) {
+            console.log(cal.canTransfer(32,2,block.timestamp - 1));
+            vm.warp(block.timestamp + 1 days);
+        }
+
+    }
+
+    function test_canTransfer_hedgehogDay() public {
+        
+        for (uint256 i = 0; i < 2; i++) {
+            assertTrue(cal.canTransfer(33,2,block.timestamp - 1));
+        }
+
     }
 
     function test_worksOn_MonToFri() external {

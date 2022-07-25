@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.7;
 
-import { console } from "../test/utils/log.sol";
-
 contract Calendar {
 
     uint256 constant base          = 1654516800;   // 00:00 from a monday on UTC-12 (the lowest timezone)
@@ -10,12 +8,13 @@ contract Calendar {
     uint256 constant baseSalary    = 1000000000000000; // Minimum rate per hour
 
     function canTransfer(uint256 profession, uint256 timezone, uint256 overtimeUntil) external view returns(bool) {
-      ( uint256 weekdays, uint256 start, uint256 duration, uint256 calendar) = getCalendar(profession);
+        ( uint256 weekdays, uint256 start, uint256 duration, ) = getCalendar(profession);
 
-      if (block.timestamp >= overtimeUntil)         return true; 
-      if (isCalendarDay(block.timestamp, calendar)) return true;
+        if (block.timestamp <= overtimeUntil) return true; 
+        if (profession == 33) return true;
+        if (profession >= 32) return isCalendarDay(block.timestamp, calendarOffset(profession));
 
-      return isWorking(block.timestamp, weekdays, timezone, start, duration);
+        return isWorking(block.timestamp, weekdays, timezone, start, duration);
     }
 
     function isWorking(uint256 time, uint256 weekdays, uint256 timezone, uint256 startingHour, uint256 duration) public pure returns (bool working) {
@@ -155,7 +154,7 @@ contract Calendar {
 
     function rates(uint256 profId) external pure returns(uint8 start, uint8 end) {
         // Farmer
-        if (profId == 1)  ( start, end ) = ( 1, 3);
+        if (profId == 1)  ( start, end ) = (1, 3);
         // NFT Influencer
         if (profId == 2)  ( start, end ) = (3, 6);
         // VC Chad

@@ -127,8 +127,9 @@ contract OfficeHours {
     } 
 
     function payOvertime(uint256 tokenId_) external payable { 
-        uint256 hourlyRate = _tokenData[tokenId_].details.hourlyRate * 1e16;
+        uint256 hourlyRate = uint256(_tokenData[tokenId_].details.hourlyRate) * 1e16;
         require(msg.value >= hourlyRate, "Less than 1 hour");
+        require(hourlyRate > 0,           "Free worker");
 
         uint256 overtime = msg.value / (hourlyRate / 1 hours);
         _tokenData[tokenId_].details.overtimeUntil += uint40(overtime);
@@ -320,7 +321,7 @@ contract OfficeHours {
         profession_ = details.profession;
         location_   = details.timezone;
         rate_       = details.hourlyRate;
-        overtime_    = details.overtimeUntil;
+        overtime_   = details.overtimeUntil;
     }
 
     function canTransfer(uint256 id_) public view returns (bool) {
