@@ -19,7 +19,6 @@ contract ContractTest is DSTest {
         cal = new Calendar();
     }
 
-    // Todo increase coverage
     function test_dow_timezone() public {
         uint256 timezone = 1654516800;
 

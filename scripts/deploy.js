@@ -12,7 +12,7 @@ async function deploy(contractName, nonce) {
 async function main() {
   await hre.run("compile");
 
-  let nonce = 45;
+  let nonce = 0;
 
   // Deploy Inventories
   let rares = await deploy("Rares", nonce);
@@ -43,6 +43,8 @@ async function main() {
 
   await officeHours.setCalendar(calendar.address, { nonce: nonce });
   nonce++;
+
+  await officeHours.mintSpecial(20, { nonce: nonce });
 }
 
 // We recommend this pattern to be able to use async/await everywhere

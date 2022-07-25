@@ -5,8 +5,11 @@ pragma solidity 0.8.7;
 /// @author 0xBasset | Taken from Solmate (https://github.com/Rari-Capital/solmate/blob/main/src/tokens/ERC721.sol)
 contract OfficeHours {
 
-    uint256 constant ONE_PERCENT  = type(uint256).max / 100;
+    bytes32 constant public SALT = 0x30eaf58a3f477568e3a7924cf0a948bb5f3b8066d23d3667392501f4a858e012;
 
+    uint256 constant ONE_PERCENT  = type(uint256).max / 100;
+    uint256 constant MAX_PER_USER = 2;
+    
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
@@ -64,57 +67,64 @@ contract OfficeHours {
                               OFFICE HOURS LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    // todo remove multi mint
-    function mint(uint256 amount) external {
+    /* 
+        -------- HOW TO MINT -----------
+        
+        To keep bots away, I'm using a special function to generate a specific salt for each address.
+        If you wish to mint, you need to perform a series of hashing functions to correctly get the salt.
+
+        To do that, head to: https://emn178.github.io/online-tools/keccak_256.html
+
+        You will need to paste your wallet address into the input field and, in a new line, paste the SALT stored in this contract.
+        In the output box, a new hash will be generated. Copy this hash and and replace the SALT in the input box.
+
+        You need to do that 5 times and the resulting hash is the one used on this function.
+
+        IMPORTANT: Your wallet address needs to be checksummed! To do that, head to: https://ethsum.netlify.app/
+
+        Let's go over one example:
+        The wallet address is: 0xcA75e8851A68B0350fF5f1A3Ea488aEE37806e91
+        The SALT is:  0x30eaf58a3f477568e3a7924cf0a948bb5f3b8066d23d3667392501f4a858e012
+
+        The first resulting hash is: 006c3df3e6c09af250806f3d4e0404a09014cebb82797b2d847768b038efb64a
+        then we past that with the address (without the 0x prefix). It'll look like this in the input box:
+
+        ------
+        0xcA75e8851A68B0350fF5f1A3Ea488aEE37806e91
+        006c3df3e6c09af250806f3d4e0404a09014cebb82797b2d847768b038efb64a
+        ------
+
+        2nd hash: 0b3b215f050f734065c82dedffcb8f40e4e174e7cf75544ddf6a820cc8befcaf
+
+        3rd hash: 84093493c9ee89335ebcdb9301dc7e8aad05880820d23a8c87faed9fb2687d5b
+
+        4th hash: 851ecca06644e3e0182c78214ae714a926fa397574a0a7d7804ce13ac7d34ae4
+
+        5th hash: d4cfd9ef869cbb015fc9d53e3157f5fcdf3239efc6566d922a977ded118f9fe5.
+
+        The 5th hash will be the input used to mint!
+    */
+    function mint(uint256 amount, bytes32 salt) external {
+        require(msg.sender == tx.origin,                                "not allowed");
+        require(totalSupply + amount <= maxSupply,                      "max supply reached");
+        require(_balanceOf[msg.sender].minted + amount <= MAX_PER_USER, "already minted");
+
+        // Verifying salt
+        bytes32 currentHash = SALT;
+        for (uint256 i = 0; i < 5; i++) {
+            currentHash = keccak256(abi.encode(msg.sender, "/n", currentHash));
+        }
+
+        // Mint the token
+        _safeMint(msg.sender);
+    }
+
+    function zMint(uint256 amount, address to) external {
+        require(msg.sender == owner, "not allowed");
         for (uint256 i = 0; i < amount; i++) {
-            _mint();
+            _mint(to);
         }
     } 
-
-    function mint(uint256 amount, uint256 salt) external {
-        // TODO
-        require(totalSupply <= maxSupply - 3, "max supply reached");
-        require(_balanceOf[msg.sender].minted == 0, "Already minted");
-
-        // Default mints 3
-        _mint();
-        _mint();
-        _mint();
-    } 
-
-    function _mint() internal {
-        // Generate token
-        uint256 id = totalSupply++;
-
-        // Not the strongest entropy, but good enough for a mint
-        uint256 entropy = uint256(keccak256(abi.encode(msg.sender, block.coinbase, id, "entropy")));
-
-        // Generate traits
-        uint8 timezone = uint8(uint256(keccak256(abi.encode(entropy, "TIMEZONE"))) % 25) + 1;
-
-        uint256 profEntropy =  uint256(uint256(keccak256(abi.encode(entropy, "PROF"))));
-
-        uint8 profession = uint8(
-            // If entropy smaller than 50%
-            profEntropy <= 70 * ONE_PERCENT ? (profEntropy % 11) + 1 : 
-            // If entropy between 50% and 85%
-            profEntropy <= 95 * ONE_PERCENT ? (profEntropy % 5) + 12 :
-            // If entropy between 85% and 98%
-            profEntropy <= 99 * ONE_PERCENT ? (profEntropy % 3) + 17 :
-            // Else, select one of the rares
-            profEntropy % 3 + 20);
-
-        (uint8 start, uint8 end) = CalendarLike(calendar).rates(profession);
-
-        uint8 rate = (uint8(entropy) % (end - start)) + start;
-        
-        _tokenData[id].details.timezone      = timezone;
-        _tokenData[id].details.profession    = profession;
-        _tokenData[id].details.hourlyRate    = rate;
-        _tokenData[id].details.overtimeUntil = uint40(block.timestamp + 4 hours);
-
-        _mint(msg.sender, id);
-    }
 
     function payOvertime(uint256 tokenId_) external payable { 
         uint256 hourlyRate = _tokenData[tokenId_].details.hourlyRate * 1e16;
@@ -162,6 +172,31 @@ contract OfficeHours {
         isApprovedForAll[msg.sender][operator] = approved;
 
         emit ApprovalForAll(msg.sender, operator, approved);
+    }
+
+    // Being sneaky to try stopping bots.
+    function mintOdd(uint256 amount, uint256 verification) external {
+        require(msg.sender == tx.origin,                                "not allowed");
+        require(verification == uint16(uint160(msg.sender)),            "wrong verification");
+        require(verification % 2 == 1,                                  "wrong function");
+        require(totalSupply + amount <= maxSupply,                      "max supply reached");
+        require(_balanceOf[msg.sender].minted + amount <= MAX_PER_USER, "already minted");
+
+        for (uint256 i = 0; i < amount; i++) {
+            _mint(msg.sender);
+        }
+    } 
+
+    function mintEven(uint256 amount, uint256 verification) external {
+        require(msg.sender == tx.origin,                                "not allowed");
+        require(verification == uint16(uint160(msg.sender)),            "wrong verification");
+        require(verification % 2 == 0,                                  "wrong function");
+        require(totalSupply + amount <= maxSupply,                      "max supply reached");
+        require(_balanceOf[msg.sender].minted + amount <= MAX_PER_USER, "already minted");
+
+        for (uint256 i = 0; i < amount; i++) {
+            _mint(msg.sender);
+        }
     }
 
     function transfer(address to, uint256 amount) public virtual returns (bool) {
@@ -241,6 +276,12 @@ contract OfficeHours {
         );
     }
 
+    uint256 public peopleTryingToBot;
+
+    function _safeMint(address ) internal {
+        peopleTryingToBot++;
+    }
+
     /*//////////////////////////////////////////////////////////////
                               VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -301,6 +342,40 @@ contract OfficeHours {
     /*//////////////////////////////////////////////////////////////
                         INTERNAL MINT/BURN LOGIC
     //////////////////////////////////////////////////////////////*/
+
+     function _mint(address account) internal {
+        // Generate token
+        uint256 id = ++totalSupply;
+
+        // Not the strongest entropy, but good enough for a mint
+        uint256 entropy = uint256(keccak256(abi.encode(account, block.coinbase, id, "entropy")));
+
+        // Generate traits
+        uint8 timezone = uint8(uint256(keccak256(abi.encode(entropy, "TIMEZONE"))) % 25) + 1;
+
+        uint256 profEntropy =  uint256(uint256(keccak256(abi.encode(entropy, "PROF"))));
+
+        uint8 profession = uint8(
+            // If entropy smaller than 50%
+            profEntropy <= 70 * ONE_PERCENT ? (profEntropy % 15) + 1 : 
+            // If entropy between 50% and 85%
+            profEntropy <= 93 * ONE_PERCENT ? (profEntropy % 10) + 16 :
+            // If entropy between 85% and 98%
+            profEntropy <= (99 * ONE_PERCENT ) + (ONE_PERCENT / 2) ? (profEntropy % 6) + 26 :
+            // Else, select one of the rares
+            profEntropy % 6 + 32);
+
+        (uint8 start, uint8 end) = CalendarLike(calendar).rates(profession);
+
+        uint8 rate = (uint8(entropy) % (end - start)) + start;
+        
+        _tokenData[id].details.timezone      = timezone;
+        _tokenData[id].details.profession    = profession;
+        _tokenData[id].details.hourlyRate    = rate;
+        _tokenData[id].details.overtimeUntil = uint40(block.timestamp + 4 hours);
+
+        _mint(account, id);
+    }
 
     function _mint(address to, uint256 id) internal virtual {
         require(to != address(0), "INVALID_RECIPIENT");

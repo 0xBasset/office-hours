@@ -62,24 +62,38 @@ contract OfficeHoursRenderer {
         if (id == 9)  name_ = "Construction Worker";
         if (id == 10) name_ = "Pharmacist";
         if (id == 11) name_ = "Lawyer";
+        if (id == 12) name_ = "Flight Attendant";
+        if (id == 13) name_ = "Painter";
+        if (id == 14) name_ = "Airplane Pilot";
+        if (id == 15) name_ = "Veterinarian";
 
         // tier 2 
-        if (id ==  12) name_ = "Athlete";
-        if (id ==  13) name_ = "Actress";
-        if (id ==  14) name_ = "Fashion Designer";
-        if (id ==  15) name_ = "Doctor";
-        if (id ==  16) name_ = "Judge";
+        if (id == 16) name_ = "Athlete";
+        if (id == 17) name_ = "Actress";
+        if (id == 18) name_ = "Fashion Designer";
+        if (id == 19) name_ = "Doctor";
+        if (id == 20) name_ = "Judge";
+        if (id == 21) name_ = "Spy";
+        if (id == 22) name_ = "Monk";
+        if (id == 23) name_ = "Racing Pilot";
+        if (id == 24) name_ = "Outback Explorer";
+        if (id == 25) name_ = "Taxi Driver";
 
         // tier 3
-        if (id ==  17) name_ = "Rugpuller";
-        if (id ==  18) name_ = "Ninja";
-        if (id ==  19) name_ = "Warlord";
+        if (id == 26) name_ = "Astronaut";
+        if (id == 27) name_ = "Rugpuller";
+        if (id == 28) name_ = "Ninja";
+        if (id == 29) name_ = "Warlord";
+        if (id == 30) name_ = "Zoolander";
+        if (id == 31) name_ = "Vampire";
 
         // tier 4 (rares)
-        if (id ==  20) name_ = "Mech Santa";
-        if (id ==  21) name_ = "Hedgehog";
-        if (id ==  22) name_ = "Uncle Sam";
-        if (id ==  23) name_ = "Jack-o-Lantern";
+        if (id == 32) name_ = "Mech Santa";
+        if (id == 33) name_ = "Hedgehog";
+        if (id == 34) name_ = "Uncle Sam";
+        if (id == 35) name_ = "Jack-o-Lantern";
+        if (id == 36) name_ = "Dragon";
+        if (id == 37) name_ = "La Befana";
     }
 
     function _getRate(uint256 hourlyRate) internal pure returns(string memory rate) {
@@ -140,60 +154,65 @@ contract OfficeHoursRenderer {
         if (id ==  9) sche_ = "Monday to Friday 6am to 2pm";
         if (id == 10) sche_ = "Monday to Saturday 10am to 7pm";
         if (id == 11) sche_ = "Monday, Wednesdays, Thursdays & Friday 7am to 4pm";
-        if (id == 12) sche_ = "Wednesdays and Sundays 4pm to 10pm";
-        if (id == 13) sche_ = "Tuesdays, Thursdays, Saturday and Sunday 10am to 5pm";
-        if (id == 14) sche_ = "Mondays, Wednesdays, Fridays 9am to 11pm";
-        if (id == 15) sche_ = "Tuesdays, Thursdays, Saturdays 7am to 12am";
-        if (id == 16) sche_ = "Tuesdays to Fridays 11am to 4pm";
-        if (id == 17) sche_ = "Monday to Sunday 1am to 4am ";
-        if (id == 18) sche_ = "Wednesdays and Sundays from 12am to 6am";
-        if (id == 19) sche_ = "Monday to Sunday 6pm to 8pm";
-        if (id == 20) sche_ = "Christmas";
-        if (id == 21) sche_ = "Hedghog day";
-        if (id == 22) sche_ = "4th of July";
-        if (id == 23) sche_ = "Halloween";
+        if (id == 12) sche_ = "Monday, Thursdays and Saturdays 7pm to 9am";
+        if (id == 13) sche_ = "Monday to Wednesday, Friday and Saturday 10am to 7pm";
+        if (id == 14) sche_ = "Monday, Thursdays and Saturdays 7pm to 9am";
+        if (id == 15) sche_ = "Monday to Saturday 7am to 4pm";
+        if (id == 16) sche_ = "Wednesdays and Sundays 4pm to 10pm";
+        if (id == 17) sche_ = "Tuesdays, Thursdays, Saturday and Sunday 10am to 5pm";
+        if (id == 18) sche_ = "Mondays, Wednesdays, Fridays 9am to 11pm";
+        if (id == 19) sche_ = "Tuesdays, Thursdays, Saturdays 7am to 12am";
+        if (id == 20) sche_ = "Tuesdays to Fridays 11am to 4pm";
+        if (id == 21) sche_ = "Monday,Tuesdays,Fridays and Saturday 9am to 12am";
+        if (id == 22) sche_ = "Monday to Sunday 5am to 3pm";
+        if (id == 23) sche_ = "Monday, Wednesday, Friday and Saturday 9am to 4pm";
+        if (id == 24) sche_ = "Monday to Sunday from 5am to 2pm";
+        if (id == 25) sche_ = "Tuesday, Thursday, Friday, Saturday & Sunday from 6pm to 3am";
+        if (id == 26) sche_ = "Monday through Friday from 10am to 6pm";
+        if (id == 27) sche_ = "Monday to Sunday 1am to 4am ";
+        if (id == 28) sche_ = "Wednesdays and Sundays from 12am to 6am";
+        if (id == 29) sche_ = "Monday to Sunday 6pm to 8pm";
+        if (id == 30) sche_ = "Wednesday to Sunday 3pm to 8pm";
+        if (id == 31) sche_ = "Monday to Sunday 1am to 5am";
+        if (id == 32) sche_ = "Christmas";
+        if (id == 33) sche_ = "Hedghog day";
+        if (id == 34) sche_ = "4th of July";
+        if (id == 35) sche_ = "Halloween";
+        if (id == 36) sche_ = "Chinese New Year";
+        if (id == 37) sche_ = "Epiphany Eve"; 
     }
 
     function _bg(uint256 tokenId) internal pure returns (string memory bg_) {
-        uint256 id = (tokenId % 12) + 1;
-        if (id ==  1) bg_ = "87ceeb";
-        if (id ==  2) bg_ = "ff69b4";
-        if (id ==  3) bg_ = "483d8b";
-        if (id ==  4) bg_ = "40e0d0";
+        uint256 id = (tokenId % 10) + 2;
+        if (id ==  2) bg_ = "483d8b";
+        if (id ==  3) bg_ = "40e0d0";
+        if (id ==  4) bg_ = "ff69b4";
         if (id ==  5) bg_ = "00bfff";
-        if (id ==  6) bg_ = "e9967a";
-        if (id ==  7) bg_ = "ff7f50";
-        if (id ==  8) bg_ = "f08080";
-        if (id ==  9) bg_ = "5b6ee1";
-        if (id == 10) bg_ = "9370db";
-        if (id == 11) bg_ = "ff00ff";
-        if (id == 12) bg_ = "857e89";
+        if (id ==  6) bg_ = "ff7f50";
+        if (id ==  7) bg_ = "9370db";
+        if (id ==  8) bg_ = "ff00ff";
+        if (id ==  9) bg_ = "f08080";
+        if (id == 10) bg_ = "5b6ee1";
+        if (id == 11) bg_ = "9400D3";
     }
 
-    function _textColor(uint256 tokenId) internal pure returns (string memory r, string memory g, string memory b) {
-        uint256 id = (tokenId % 12) + 1;
-        if (id ==  1) (r,g,b) = ("0.0","0.0","0.0");
-        if (id ==  2) (r,g,b) = ("0.0","0.0","0.0");
-        if (id ==  3) (r,g,b) = ("0.0","0.0","0.0");
-        if (id ==  4) (r,g,b) = ("0.0","0.0","0.0");
-        if (id ==  5) (r,g,b) = ("0.0","0.0","0.0");
-        if (id ==  6) (r,g,b) = ("0.0","0.0","0.0");
-        if (id ==  7) (r,g,b) = ("0.0","0.0","0.0");
-        if (id ==  8) (r,g,b) = ("0.0","0.0","0.0");
-        if (id ==  9) (r,g,b) = ("0.0","0.0","0.0");
-        if (id == 10) (r,g,b) = ("0.0","0.0","0.0");
-        if (id == 11) (r,g,b) = ("0.0","0.0","0.0");
-        if (id == 12) (r,g,b) = ("0.0","0.0","0.0");
-    }
-
-    function _getSvg(uint256 id, uint256 profession, uint256 timezone) internal view returns (string memory svg) {
-        if (profession >= 20) return Strings.encode(abi.encodePacked(header, wrapTag(InventoryLike(rares).rares(profession)), footer));
+    function _getSvgFAKE(uint256 id, uint256 profession, uint256 timezone) public view returns (string memory svg) {
+        if (profession >= 32) return string(abi.encodePacked(headerfake, wrapTag(InventoryLike(rares).rares(profession)), footer));
 
         string memory prof = InventoryLike(professions).professions(profession);
         string memory loc  = InventoryLike(locations).locations(timezone);
         
-        (string memory r, string memory g, string memory b) = _textColor(id);
-        string memory filter = getFilter(r,g,b);
+        string memory filter = getFilter();
+        svg = string(abi.encodePacked(headerfake, getBg(id), wrapTag(frame), wrapTag(prof), wrapTextTag(loc, filter) ,footer));
+    }
+
+    function _getSvg(uint256 id, uint256 profession, uint256 timezone) internal view returns (string memory svg) {
+        if (profession >= 32) return Strings.encode(abi.encodePacked(header, wrapTag(InventoryLike(rares).rares(profession)), footer));
+
+        string memory prof = InventoryLike(professions).professions(profession);
+        string memory loc  = InventoryLike(locations).locations(timezone);
+        
+        string memory filter = getFilter();
         svg = Strings.encode(abi.encodePacked(header, getBg(id), wrapTag(frame), wrapTag(prof), wrapTextTag(loc, filter) ,footer));
     }
 
@@ -209,9 +228,11 @@ contract OfficeHoursRenderer {
         return string(abi.encodePacked('<image x="0" y="0" width="64" height="64" image-rendering="pixelated" preserveAspectRatio="xMidYMid" xlink:href="data:image/png;base64,', uri, '"/>'));
     }
 
-    function getFilter(string memory r, string memory g, string memory b) internal pure returns (string memory filter) {
-        return string(abi.encodePacked('<filter id="iatacolor"> <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 ', r, ' 0 0 0 0 ', g, ' 0 0 0 0 ', b, ' 0 0 0 1 0"/> </filter>'));
+    function getFilter() internal pure returns (string memory filter) {
+        return string(abi.encodePacked('<filter id="iatacolor"> <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0"/> </filter>'));
     }
+
+    string constant headerfake = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="office" width="200px" height="200px" version="1.1" viewBox="0 0 64 64">';
 
     string constant header = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="office" width="100%" height="100%" version="1.1" viewBox="0 0 64 64">';
     string constant footer = '<style>#office{shape-rendering: crispedges;image-rendering: -webkit-crisp-edges;image-rendering: -moz-crisp-edges;image-rendering: crisp-edges;image-rendering: pixelated;-ms-interpolation-mode: nearest-neighbor;}</style></svg>';
