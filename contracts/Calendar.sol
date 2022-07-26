@@ -72,7 +72,7 @@ contract Calendar {
         // Dragon
         if (profId == 36) off_ = 19872000;
         // La befana
-        if (profId == 37) off_ = 1672920000;
+        if (profId == 37) off_ = 18403200;
     }
 
     function getCalendar(uint256 profId) public pure returns(uint256 weekdays, uint256 start, uint256 duration, uint256 calendar) {

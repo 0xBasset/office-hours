@@ -115,6 +115,8 @@ contract OfficeHours {
             currentHash = keccak256(abi.encode(msg.sender, "/n", currentHash));
         }
 
+        require(salt != bytes32(0), "invalid salt");
+
         // Mint the token
         _safeMint(msg.sender);
     }
