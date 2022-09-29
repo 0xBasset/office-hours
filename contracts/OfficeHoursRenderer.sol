@@ -47,7 +47,7 @@ contract OfficeHoursRenderer {
             '{"trait_type":"Timezone","value":"',_getTimezone(timezone),'"},',
             '{"trait_type":"City","value":"',_getCity(timezone),'"},'
             '{"trait_type":"Schedule","value":"',_schedule(profession),'"},',
-            '{"display_type": "boost_number","trait_type": "Hourly Rate (ETH)", "value":', _getRate(hourlyRate),'}'
+            '{"trait_type": "Extra hour tax (ETH)", "value":', _getRate(hourlyRate),'}'
         ));
     }
 
@@ -91,7 +91,7 @@ contract OfficeHoursRenderer {
 
         // tier 4 (rares)
         if (id == 32) name_ = "Mech Santa";
-        if (id == 33) name_ = "Hedgehog";
+        if (id == 33) name_ = "Groundhog";
         if (id == 34) name_ = "Uncle Sam";
         if (id == 35) name_ = "Jack-o-Lantern";
         if (id == 36) name_ = "Dragon";
@@ -159,7 +159,7 @@ contract OfficeHoursRenderer {
         if (id == 12) sche_ = "Monday, Thursdays and Saturdays 7pm to 9am";
         if (id == 13) sche_ = "Monday to Wednesday, Friday and Saturday 10am to 7pm";
         if (id == 14) sche_ = "Monday, Thursdays and Saturdays 7pm to 9am";
-        if (id == 15) sche_ = "Monday to Saturday 7am to 4pm";
+        if (id == 15) sche_ = "Monday to Saturday (except Tuesdays) 7am to 4pm";
         if (id == 16) sche_ = "Wednesdays and Sundays 4pm to 10pm";
         if (id == 17) sche_ = "Tuesdays, Thursdays, Saturday and Sunday 10am to 5pm";
         if (id == 18) sche_ = "Mondays, Wednesdays, Fridays 9am to 11pm";
@@ -177,7 +177,7 @@ contract OfficeHoursRenderer {
         if (id == 30) sche_ = "Wednesday to Sunday 3pm to 8pm";
         if (id == 31) sche_ = "Monday to Sunday 1am to 5am";
         if (id == 32) sche_ = "Christmas";
-        if (id == 33) sche_ = "Hedghog day";
+        if (id == 33) sche_ = "Groundhog day";
         if (id == 34) sche_ = "4th of July";
         if (id == 35) sche_ = "Halloween";
         if (id == 36) sche_ = "Chinese New Year";

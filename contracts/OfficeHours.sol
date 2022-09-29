@@ -67,43 +67,6 @@ contract OfficeHours {
                               OFFICE HOURS LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    /* 
-        -------- HOW TO MINT -----------
-        
-        To keep bots away, I'm using a special function to generate a specific salt for each address.
-        If you wish to mint, you need to perform a series of hashing functions to correctly get the salt.
-
-        To do that, head to: https://emn178.github.io/online-tools/keccak_256.html
-
-        You will need to paste your wallet address into the input field and, in a new line, paste the SALT stored in this contract.
-        In the output box, a new hash will be generated. Copy this hash and and replace the SALT in the input box.
-
-        You need to do that 5 times and the resulting hash is the one used on this function.
-
-        IMPORTANT: Your wallet address needs to be checksummed! To do that, head to: https://ethsum.netlify.app/
-
-        Let's go over one example:
-        The wallet address is: 0xcA75e8851A68B0350fF5f1A3Ea488aEE37806e91
-        The SALT is:  0x30eaf58a3f477568e3a7924cf0a948bb5f3b8066d23d3667392501f4a858e012
-
-        The first resulting hash is: 006c3df3e6c09af250806f3d4e0404a09014cebb82797b2d847768b038efb64a
-        then we past that with the address (without the 0x prefix). It'll look like this in the input box:
-
-        ------
-        0xcA75e8851A68B0350fF5f1A3Ea488aEE37806e91
-        006c3df3e6c09af250806f3d4e0404a09014cebb82797b2d847768b038efb64a
-        ------
-
-        2nd hash: 0b3b215f050f734065c82dedffcb8f40e4e174e7cf75544ddf6a820cc8befcaf
-
-        3rd hash: 84093493c9ee89335ebcdb9301dc7e8aad05880820d23a8c87faed9fb2687d5b
-
-        4th hash: 851ecca06644e3e0182c78214ae714a926fa397574a0a7d7804ce13ac7d34ae4
-
-        5th hash: d4cfd9ef869cbb015fc9d53e3157f5fcdf3239efc6566d922a977ded118f9fe5.
-
-        The 5th hash will be the input used to mint!
-    */
     function mint(uint256 amount, bytes32 salt) external {
         require(msg.sender == tx.origin,                                "not allowed");
         require(totalSupply + amount <= maxSupply,                      "max supply reached");
@@ -131,10 +94,13 @@ contract OfficeHours {
     function payOvertime(uint256 tokenId_) external payable { 
         uint256 hourlyRate = uint256(_tokenData[tokenId_].details.hourlyRate) * 1e16;
         require(msg.value >= hourlyRate, "Less than 1 hour");
-        require(hourlyRate > 0,           "Free worker");
+        require(hourlyRate > 0,          "Free worker");
 
         uint256 overtime = msg.value / (hourlyRate / 1 hours);
-        _tokenData[tokenId_].details.overtimeUntil += uint40(overtime);
+
+        uint256 endTimestamp = _tokenData[tokenId_].details.overtimeUntil;
+
+        _tokenData[tokenId_].details.overtimeUntil = endTimestamp < block.timestamp ? uint40(block.timestamp + overtime) : uint40(endTimestamp + overtime);
     } 
 
     /*//////////////////////////////////////////////////////////////
@@ -175,45 +141,6 @@ contract OfficeHours {
         isApprovedForAll[msg.sender][operator] = approved;
 
         emit ApprovalForAll(msg.sender, operator, approved);
-    }
-
-    // Being sneaky to try stopping bots.
-    function mintOdd(uint256 amount, uint256 verification) external {
-        require(msg.sender == tx.origin,                                "not allowed");
-        require(verification == uint16(uint160(msg.sender)),            "wrong verification");
-        require(verification % 2 == 1,                                  "wrong function");
-        require(totalSupply + amount <= maxSupply,                      "max supply reached");
-        require(_balanceOf[msg.sender].minted + amount <= MAX_PER_USER, "already minted");
-
-        for (uint256 i = 0; i < amount; i++) {
-            _mint(msg.sender);
-        }
-    } 
-
-    function mintEven(uint256 amount, uint256 verification) external {
-        require(msg.sender == tx.origin,                                "not allowed");
-        require(verification == uint16(uint160(msg.sender)),            "wrong verification");
-        require(verification % 2 == 0,                                  "wrong function");
-        require(totalSupply + amount <= maxSupply,                      "max supply reached");
-        require(_balanceOf[msg.sender].minted + amount <= MAX_PER_USER, "already minted");
-
-        for (uint256 i = 0; i < amount; i++) {
-            _mint(msg.sender);
-        }
-    }
-
-    function transfer(address to, uint256 amount) public virtual returns (bool) {
-        _balanceOf[msg.sender].balance -= uint128(amount);
-
-        // Cannot overflow because the sum of all user
-        // balances can't exceed the max uint256 value.
-        unchecked {
-            _balanceOf[to].balance += uint128(amount);
-        }
-
-        emit Transfer(msg.sender, to, amount);
-
-        return true;
     }
 
     function transferFrom(
@@ -295,9 +222,6 @@ contract OfficeHours {
     }
 
     function ownerOf(uint256 id) public view virtual returns (address owner_) {
-        Details memory details = _tokenData[id].details;
-        require(CalendarLike(calendar).canTransfer(details.profession, details.timezone, details.overtimeUntil), "NOT_ON_DUTY");
-
         require((owner_ = _tokenData[id].owner) != address(0), "NOT_MINTED");
     }
 
